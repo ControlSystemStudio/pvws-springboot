@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>PV Web Socket</title>
+<link rel="stylesheet" type="text/css" href="css/pvws.css">
+<script type="text/javascript" src="js/jquery.js"></script>
+<script type="text/javascript" src="js/base64.js"></script>
+<script type="text/javascript" src="js/pvws.js"></script>
+<script type="text/javascript" src="js/tablesort.js"></script>
+</head>
+<body>
+
+<h1>PV Web Socket</h1>
+<p>
+Web socket: <span id="url" class="url">ws://...</span> <img id="status" alt="Status" src="img/disconnected.png">
+<input type="button" value="Disconnect">
+</p>
+
+
+<h3>Ping</h3>
+<p>
+A 'ping' message requests the server to 'ping' this client,
+and a proper web client is supposed to automatically return a 'pong'
+to the server.
+(Internal test mechanism)
+</p>
+<pre>
+{ "type": "ping" }
+</pre>
+<input type="button" value="Ping">
+
+
+<h3>Echo</h3>
+<p>
+An 'echo' JSON message is simply returned.
+</p>
+<pre>
+{ "type": "echo", "body": "Hello, echo", "other": "Whatever else" }
+</pre>
+<form>
+  <input type="text" id="text" size="40" value="Hello, echo!">
+  <input type="button" value="Echo">
+</form>
+
+
+<h3>Subscribe to PVs</h3>
+<p>
+A 'subscribe' JSON message requests updates for one or more PVs.
+</p>
+<pre>
+{ "type": "subscribe", "pvs": [ "sim://sine", "loc://x(4)" ] }
+</pre>
+
+<p>
+A 'clear' JSON message cancels updates for one or more PVs.
+</p>
+<pre>
+{ "type": "clear", "pvs": [ "sim://sine", "loc://x(4)" ] }
+</pre>
+<form>
+  <input type="text" id="pv_name" size="40" value="sim://sine">
+  <br>
+  <input type="button" value="Subscribe">
+  <input type="button" value="UnSubscribe">
+</form>
+
+<p>
+Value updates are JSON messages with the following elements:
+</p>
+
+<dl>
+  <dt>type</dt>       <dd>'update'</dd>
+  <dt>pv</dt>         <dd>PV Name</dd>
+  <dt>value</dt>      <dd>Value of numeric PV or 'NaN'; Enum PV's numeric value</dd>
+  <dt>text</dt>       <dd>Value of text PV; Selected label of enum PV</dd>
+  <dt>severity</dt>   <dd>NONE, MINOR, MAJOR, INVALID, UNDEFINED</dd>
+  <dt>units</dt>      <dd>Numeric PV units</dd>
+  <dt>precision</dt>  <dd>Numeric PV precision</dd>
+  <dt>labels</dt>     <dd>Array of labels for enum PV</dd>
+  <dt>min</dt>        <dd>Low end of expected value range</dd>
+  <dt>max</dt>        <dd>High end of expected value range</dd>
+  <dt>alarm_low</dt>  <dd>Low end of alarm range (for EPICS records, often 'LOLO')</dd>
+  <dt>warn_low</dt>   <dd>Low end of warning range ('LOW')</dd>
+  <dt>warn_high</dt>  <dd>High end of warning range ('HIGH')</dd>
+  <dt>alarm_high</dt> <dd>High end of alarm range ('HIHI')</dd>
+  <dt>seconds</dt>    <dd>Timestamp seconds since January 1, 1970 epoch</dd>
+  <dt>nanos</dt>      <dd>Timestamp nanoseconds</dd>
+  <dt>readonly</dt>   <dd>'true' for read-only PV, no write access</dd>
+</dl>
+
+<p>
+The web socket sends the complete meta data (units, labels, ..) on the first update.
+Further messages only contain the changed severity and value/text.
+The client library merges received data and thus always presents the complete PV information.
+</p>
+
+<p>
+For arrays, the web socket sends the data in a field 'b64dbl' or 'b64int' which contains
+the Base-64 encoded binary array of double respectively int values, using little-endian byte order.
+The client library decodes the binary data into the value field, presenting a double resp. int array.
+</p>
+
+<h3>List</h3>
+<p>
+A 'list' JSON message requests a list of PV subscriptions for this web socket.
+</p>
+<pre>
+{ "type": "list" }
+</pre>
+<input type="button" value="List">
+
+
+<h3>Write</h3>
+<p>
+By default, the PV Web Socket is read-only.
+When configured to support writing, you can write to a PV.
+The PV must be known, i.e. there must be an active subscription.
+Send the following type of message to write a value to a subscribed PV:
+</p>
+<pre>
+{ "type": "write", "pv": "NameOfPV", "value": number_or_string }
+</pre>
+<form>
+  PV Name: <input type="text" id="write_pv" size="40" value="loc://x(0)">
+  Value:   <input type="text" id="write_value" size="10" value="42">
+           <input type="checkbox" id="write_numeric" value="true" checked>Number
+           <input type="button" value="Write">
+</form>
+
+
+<h3>Messages</h3>
+
+This section displays the last message received from the web socket.
+<textarea id="messages" rows="10" style="width: 100%"></textarea>
+<input type="button" value="Clear">
+
+
+<h1>Info</h1>
+<p>
+The servlet <span id="info_url" class="url">ws://...</span>
+returns JSON with general server info.
+</p>
+<p>
+The servlet <span id="summary_url" class="url">ws://...</span>
+returns JSON with a summary of all active web sockets.
+</p>
+<p>
+The servlet <span id="socket_url" class="url">ws://...</span>
+returns JSON with details on all active web sockets
+and their PVs.
+</p>
+<p>
+The servlet <span id="pool_url" class="url">ws://...</span>
+returns JSON with a listing of all PVs in the PV connection pool.
+</p>
+
+<div id="info"></div>
+
+<p>
+<input type="button" value="Summary" onclick="query_summary()">
+<input type="button" value="Sockets" onclick="query_sockets()">
+<input type="button" value="PV Pool" onclick="query_pool()">
+</p>
+
+<hr>
+<div id="versions">
+2022-10-19 Bump jackson-databind from 2.13.2.2 to 2.13.4.1<br>
+2022-09-23 "R3" PV_DEFAULT_TYPE; core-pv 4.7.0<br>
+2022-05-18 Set 'jca.use_env=true' for core-pv CA to use EPICS_CA_ADDR_LIST. Add time stamp.<br>
+2022-05-18 "R2" Add alarm/warn thresholds.<br>
+2022-05-12 "R1" Unbundle core-pv.<br>
+2022-04-07 "R0" jQuery 3.6.0.<br>
+2020-11-20 Support 'float' and 'short' arrays.<br>
+2020-11-02 "Summary" with totals.<br>
+2020-10-28 Update to JCA 2.3.7 to 2.4.6.<br>
+2020-10-21 Fix disconnect on 'NaN'.<br>
+2020-10-15 Log environment vars on startup.<br>
+2020-10-05 Fix 'Sockets' button. Clear write queue on write error.<br>
+2020-08-28 Handle access right changes<br>
+2020-07-11 Track time of last message sent<br>
+2020-07-10 Only log when queue enters/leaves stuffed state<br>
+2020-07-09 Reduce array displays in logging<br>
+2020-07-08 Separate rate for array PVs<br>
+2019-08-05 Write support<br>
+2019-07-04 Initial version presented at EPICS Meeting<br>
+</div>
+
+
+<script type="text/javascript">
+// Update URLs based on the actual location of this page
+let wsurl = window.location.pathname
+wsurl = wsurl.substring(0, wsurl.indexOf("/pvws"))
+wsurl = window.location.host + wsurl + "/pvws/pv"
+if (window.location.protocol == "https:")
+    wsurl = "wss://" + wsurl
+else
+    wsurl = "ws://" + wsurl
+jQuery("#url").html(wsurl);
+jQuery("#info_url").html(window.location.href + "info");
+jQuery("#summary_url").html(window.location.href + "summary");
+jQuery("#socket_url").html(window.location.href + "socket");
+jQuery("#pool_url").html(window.location.href + "pool");
+
+
+// Prevent 'enter' from submitting a form and thus reloading the page
+jQuery("form").submit(e => false);
+
+// Create PV Web Socket
+let pvws = new PVWS(wsurl,
+    connected =>
+    {
+        if (connected)
+            jQuery("#url").html(pvws.url);
+        else
+            jQuery("#messages").val("");
+        jQuery("#status").attr("src", connected ? "img/connected.png" : "img/disconnected.png");
+    },
+    message =>
+    {
+        let resp = jQuery("#messages");
+        resp.val(JSON.stringify(message, null, 2));
+    });
+
+// Have forms/buttons interact with the web socket
+jQuery("input[type=button][value=Disconnect]") .click(() => pvws.close() );
+
+jQuery("input[type=button][value=Ping]")       .click(() => pvws.ping() );
+
+jQuery("input[type=button][value=Subscribe]")  .click(() => pvws.subscribe(jQuery("#pv_name").val()) );
+
+jQuery("input[type=button][value=UnSubscribe]").click(() => pvws.clear(jQuery("#pv_name").val()) );
+
+jQuery("input[type=button][value=Write]")      .click(() =>
+{
+    let pv = jQuery("#write_pv").val();
+    let value = jQuery("#write_value").val();
+    if (jQuery("#write_numeric").prop("checked"))
+        value = Number(value);
+    pvws.write(pv, value);    
+    jQuery("#messages").get(0).scrollIntoView();
+});
+
+jQuery("input[type=button][value=List]")       .click(() =>
+{
+    pvws.list();
+    jQuery("#messages").get(0).scrollIntoView();
+});
+
+jQuery("input[type=button][value=Echo]")       .click(() =>
+{
+    pvws.socket.send(JSON.stringify({ type: 'echo', body: jQuery("#text").val() }));
+    jQuery("#messages").get(0).scrollIntoView()
+});
+
+jQuery("input[type=button][value=Clear]")      .click(() => jQuery("#messages").val("") );
+
+function query_summary()
+{
+    jQuery("#info").html("Fetching summary ...");
+    jQuery.ajax(
+    {
+        url: "summary",
+        method: "GET",
+        dataType: "json",
+        success: data =>
+        {
+            let info = jQuery("#info");
+            // Clear
+            info.html("");
+            
+            // Build table: Header
+            let table = jQuery("<table>");
+            table.append($("<tr>").append($("<th>").text("ID"))
+                                  .append($("<th>").text("Created"))
+                                  .append($("<th>").text("Last Client Message"))
+                                  .append($("<th>").text("Last Message Sent"))
+                                  .append($("<th>").text("Queue Size"))
+                                  .append($("<th>").text("PVs"))
+                                  .append($("<th>").text("Arrays"))
+                                  .append($("<th>").text("Max. Array Size")) );
+            // .. Rows
+            let pv_count = 0;
+            let array_count = 0;
+            let max_array = 0;
+            for (let sock of data.sockets)
+            {
+                let id = sock.id;
+                if (id != 'None')
+                    id = id + '<input type="button" value="?" onclick="query_sockets(\'' + sock.id + '\')">';
+                    
+                let created = sock.created == 0 ? "-" : new Date(sock.created);
+                let update = sock.last_client_message == 0 ? "-" : new Date(sock.last_client_message);
+                let sent = sock.last_message_sent == 0 ? "-" : new Date(sock.last_message_sent);
+                table.append($("<tr>").append($("<td>").html(id))
+                                      .append($("<td>").text(created))
+                                      .append($("<td>").text(update))
+                                      .append($("<td>").text(sent))
+                                      .append($("<td>").text(sock.queued))
+                                      .append($("<td>").text(sock.pvs))
+                                      .append($("<td>").text(sock.arrays))
+                                      .append($("<td>").text(sock.max_size)) );
+                pv_count += sock.pvs;
+                array_count += sock.arrays;
+                if (sock.max_size > max_array)
+                	max_array = sock.max_size;
+            }
+            table.append($("<tr>").css("font-style", "italic")
+            		              .append($("<td>"))
+				                  .append($("<td>"))
+				                  .append($("<td>"))
+			                      .append($("<td>"))
+			                      .append($("<td>").text("Total: " + data.sockets.length + " sockets"))
+				                  .append($("<td>").text(pv_count))
+				                  .append($("<td>").text(array_count))
+				                  .append($("<td>").text(max_array)) );
+            
+            makeTableSortable(table, true);
+            info.append(table);
+            
+            info.append();
+            // Scroll to 'bottom' to show table
+            window.scrollTo(0, 100000);
+        },
+        error: (xhr, status, error) => jQuery("#info").html("No Info: " + status),        
+    });
+}
+
+function query_sockets(...id)
+{
+    let url = (id === undefined  ||  id.length <= 0)
+            ? "socket"
+            : "socket/" + id[0];
+    jQuery("#info").html("Fetching socket info...");
+    jQuery.ajax(
+    {
+        url: url,
+        method: "GET",
+        dataType: "json",
+        success: data =>
+        {
+            let info = jQuery("#info");
+            // Clear
+            info.html("");
+            
+            // Build table: Header
+            let table = jQuery("<table>");
+            table.append($("<tr>").append($("<th>").text("ID"))
+                                  .append($("<th>").text("Created"))
+                                  .append($("<th>").text("Last Client Message"))
+                                  .append($("<th>").text("Last Message Sent"))
+                                  .append($("<th>").text("Queue Size"))
+                                  .append($("<th>").text("PVs")) );
+            // .. Rows
+            for (let sock of data.sockets)
+            {
+                let id = sock.id;
+                if (id != 'None')
+                    id = id + '<input type="button" value="x" style="color:red" onclick="closeSocket(\'' + sock.id + '\')">';
+                    
+                let i=0;
+                let pv_info = jQuery("<table>");
+                for (let pv of sock.pvs)
+                {
+                    ++i;
+                    pv_info.append($("<tr>").append($("<td>").html(i))
+                           .append($("<td>").text(pv.name))
+                           .append($("<td>").text(pv.value)) );
+                }
+                let created = sock.created == 0 ? "-" : new Date(sock.created);
+                let update = sock.last_client_message == 0 ? "-" : new Date(sock.last_client_message);
+                let sent = sock.last_message_sent == 0 ? "-" : new Date(sock.last_message_sent);
+                table.append($("<tr>").append($("<td>").html(id))
+                                      .append($("<td>").text(created))
+                                      .append($("<td>").text(update))
+                                      .append($("<td>").text(sent))
+                                      .append($("<td>").text(sock.queued))
+                                      .append($("<td>").html(pv_info)) );
+            }
+            makeTableSortable(table, false);
+            info.append(table);
+            // Scroll to 'bottom' to show table
+            window.scrollTo(0, 100000);
+        },
+        error: (xhr, status, error) => jQuery("#info").html("No Info: " + status),        
+    });
+}
+
+function closeSocket(id)
+{
+    let url = "socket/" + id;
+    jQuery.ajax(
+    {
+        url: url,
+        method: "DELETE",
+        success: query_sockets
+    });
+}
+
+function query_pool()
+{
+    jQuery("#info").html("Fetching PV Pool info...");
+    jQuery.ajax(
+    {
+        url: "pool",
+        method: "GET",
+        dataType: "json",
+        success: data =>
+        {
+            let info = jQuery("#info");
+            // Clear
+            info.html("");
+            
+            // Build table: Header
+            let table = jQuery("<table>");
+            table.append($("<tr>").append($("<th>").text("Refs"))
+                                  .append($("<th>").text("PV")) );
+            // .. Rows
+            for (let row of data)
+            {
+                table.append($("<tr>").append($("<td>").html(row.refs))
+                                      .append($("<td>").html(row.pv)) );
+            }
+            makeTableSortable(table, false);
+            info.append(table);
+            // Scroll to 'bottom' to show table
+            window.scrollTo(0, 100000);
+        },
+        error: (xhr, status, error) => jQuery("#info").html("No Info: " + status),        
+    });
+}
+
+function show_server_info()
+{
+    jQuery("#info").html("Fetching Server info...");
+    jQuery.ajax(
+    {
+        url: "info",
+        method: "GET",
+        dataType: "json",
+        success: data =>
+        {
+            let info = jQuery("#info");
+            
+            // Clear
+            info.html("");
+            
+            // Build table
+            let table = jQuery("<table>");
+            table.append($("<tr>").append($("<th>").css("width", "15%").html("Info"))
+                                  .append($("<th>").html("Value")) );
+            table.append($("<tr>").append($("<td>").html("JRE"))
+                                  .append($("<td>").html(data.jre)) );
+            table.append($("<tr>").append($("<td>").html("Start Time"))
+                                  .append($("<td>").html(data.start_time)) );
+            info.append(table);
+            // Scroll to 'bottom' to show table
+            window.scrollTo(0, 100000);
+        },
+        error: (xhr, status, error) => jQuery("#info").html("No Info: " + status),        
+    });
+}
+
+
+//Once the page loads,...
+jQuery(() =>
+{
+    // Open the WS
+    pvws.open();
+    
+    // Show server info
+    show_server_info();
+});
+
+
+</script>
+
+</body>
+</html>
