@@ -1,1 +1,1 @@
-This is an attempt to port the orgiginal work https://github.com/ornl-epics/pvws to a Spring Boot-based web application.
+This is an attempt to port the original work https://github.com/ornl-epics/pvws to a Spring Boot-based web application. While the code adapted to the web socket APIs of Spring Boot, most of the code is essentially unchanged.
