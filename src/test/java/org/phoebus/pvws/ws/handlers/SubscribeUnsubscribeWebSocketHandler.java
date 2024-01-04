@@ -22,6 +22,7 @@ package org.phoebus.pvws.ws.handlers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.phoebus.pvws.model.ApplicationClientMessage;
 import org.phoebus.pvws.model.ApplicationClientPvsMessage;
+import org.springframework.lang.NonNull;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
@@ -42,10 +43,10 @@ public class SubscribeUnsubscribeWebSocketHandler extends TextWebSocketHandler {
 
     private boolean firstValueMessageReceived = false;
 
-    private ApplicationClientMessage listMessage = new ApplicationClientMessage("list");
+    private final ApplicationClientMessage listMessage = new ApplicationClientMessage("list");
 
-    public SubscribeUnsubscribeWebSocketHandler(AtomicReference message1,
-                                                AtomicReference message2,
+    public SubscribeUnsubscribeWebSocketHandler(AtomicReference<String> message1,
+                                                AtomicReference<String> message2,
                                                 CountDownLatch latch){
         this.message1 = message1;
         this.message2 = message2;
@@ -60,7 +61,7 @@ public class SubscribeUnsubscribeWebSocketHandler extends TextWebSocketHandler {
     }
 
     @Override
-    public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+    public void handleTextMessage(@NonNull WebSocketSession session, TextMessage message) throws Exception {
         // Send message only if it contains a value. That way we can detect if the message
         // originates from an actual PV (e.g. sim://sine).
         if(message.getPayload().contains("value") && !firstValueMessageReceived){

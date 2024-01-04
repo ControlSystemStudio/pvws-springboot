@@ -38,6 +38,18 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * This class replaces several servlets from the original pvws implementation,
+ * which are published under the following copyright:
+ * <p>
+ * ******************************************************************************
+ * Copyright (c) 2019-2022 UT-Battelle, LLC.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the LICENSE
+ * which accompanies this distribution
+ * ******************************************************************************
+ * </p>
+ */
 @SuppressWarnings("unused")
 @RestController
 public class PvwsRestController {
@@ -123,7 +135,6 @@ public class PvwsRestController {
         }
         return data;
     }
-
 
     @GetMapping("/info")
     public InfoData info(@RequestParam(name = "env", defaultValue = "false") boolean env) {

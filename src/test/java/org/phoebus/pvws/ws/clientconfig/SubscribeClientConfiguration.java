@@ -27,11 +27,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("unused")
-public class SubscribeClientConfiguration extends ClientConfigurationBase{
+public class SubscribeClientConfiguration extends ClientConfigurationBase {
 
     @Value("${type}")
     private String type;

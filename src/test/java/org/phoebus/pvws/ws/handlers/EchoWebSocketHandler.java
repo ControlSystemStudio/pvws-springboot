@@ -23,7 +23,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.phoebus.pvws.model.ApplicationClientEchoMessage;
-import org.phoebus.pvws.model.ApplicationClientMessage;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
@@ -32,8 +31,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class EchoWebSocketHandler extends TextWebSocketHandler {
-
-    protected Log logger = LogFactory.getLog(EchoWebSocketHandler.class);
 
     private final CountDownLatch latch;
 
@@ -45,7 +42,7 @@ public class EchoWebSocketHandler extends TextWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionEstablished(WebSocketSession session) throws Exception{
+    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         ObjectMapper objectMapper = new ObjectMapper();
         ApplicationClientEchoMessage applicationClientEchoMessage =
                 new ApplicationClientEchoMessage();

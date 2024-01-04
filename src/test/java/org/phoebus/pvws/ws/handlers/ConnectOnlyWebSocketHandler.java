@@ -19,6 +19,7 @@
 
 package org.phoebus.pvws.ws.handlers;
 
+import org.springframework.lang.NonNull;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
@@ -34,7 +35,7 @@ public class ConnectOnlyWebSocketHandler extends TextWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionEstablished(WebSocketSession session) {
+    public void afterConnectionEstablished(@NonNull WebSocketSession session) {
         latch.countDown();
     }
 }
