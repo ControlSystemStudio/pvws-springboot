@@ -19,11 +19,11 @@
 
 package org.phoebus.pvws;
 
-import jakarta.annotation.PostConstruct;
 import org.phoebus.pv.PVPool;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -48,21 +48,18 @@ public class EpicsConfiguration {
 
         // Set default type in preferences before PVPool reads the preferences
         String default_type = System.getenv("PV_DEFAULT_TYPE");
-        if (default_type != null  &&  !default_type.isEmpty()){
+        if (default_type != null && !default_type.isEmpty()) {
             Preferences.userRoot().node("/org/phoebus/pv").put("default", default_type);
         }
         // Not set in environment, try application properties or command line
-        else if(pvDefaultType != null && !pvDefaultType.isEmpty()){
+        else if (pvDefaultType != null && !pvDefaultType.isEmpty()) {
             Preferences.userRoot().node("/org/phoebus/pv").put("default", pvDefaultType);
         }
         logger.log(Level.INFO, "PV_DEFAULT_TYPE=" + Preferences.userRoot().node("/org/phoebus/pv").get("default", null));
 
 
-
-
-
         // Configure JCA/CAJ to use environment vars, not java properties or preferences
-        System.setProperty("jca.use_env", "true");
+        System.setProperty("jca.use_env", "false");
 
         for (String name : new String[]
                 {

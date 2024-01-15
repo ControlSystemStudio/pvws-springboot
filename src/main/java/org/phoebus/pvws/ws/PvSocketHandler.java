@@ -22,12 +22,14 @@ package org.phoebus.pvws.ws;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.PongMessage;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import javax.annotation.PreDestroy;
 import java.io.EOFException;
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +39,7 @@ import java.util.logging.Logger;
 /**
  * Single web socket end-point routing messages to active {@link WebSocket} instances.
  */
+@Component
 public class PvSocketHandler extends TextWebSocketHandler {
 
     /**
@@ -148,5 +151,13 @@ public class PvSocketHandler extends TextWebSocketHandler {
         if (message == null || message.length() < 200)
             return message;
         return message.substring(0, 200) + " ...";
+    }
+
+    @PreDestroy
+    public void cleanup() {
+        sockets.forEach(s -> {
+            logger.log(Level.INFO, "Disposing socket " + s.getId());
+            s.dispose();
+        });
     }
 }

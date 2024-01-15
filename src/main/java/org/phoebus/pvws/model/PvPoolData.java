@@ -21,15 +21,15 @@ package org.phoebus.pvws.model;
 
 public class PvPoolData {
 
-    private String name;
+    private String pv;
     private Integer refs;
 
-    public String getName() {
-        return name;
+    public String getPv() {
+        return pv;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setPv(String pv) {
+        this.pv = pv;
     }
 
     public Integer getRefs() {

@@ -285,7 +285,7 @@ public class WebSocket {
                 logger.log(Level.FINE, "Disposing web socket PVs:");
                 for (final WebSocketPV pv : pvs.values()) {
                     logger.log(Level.FINE, () -> "Closing " + pv);
-                    pv.dispose();
+                    //pv.dispose();
                 }
                 pvs.clear();
             }

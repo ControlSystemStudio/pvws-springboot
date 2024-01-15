@@ -18,15 +18,39 @@
 
 package org.phoebus.pvws;
 
+import org.phoebus.pv.PV;
+import org.phoebus.pv.PVPool;
+import org.phoebus.pv.RefCountMap;
+import org.phoebus.pvws.ws.WebSocket;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.context.ApplicationContext;
+
+import java.util.List;
 
 @SpringBootApplication
-@EnableAutoConfiguration
-public class EpicsWebSocketServerApplication {
+public class EpicsWebSocketServerApplication extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
-        SpringApplication.run(EpicsWebSocketServerApplication.class, args);
+        ApplicationContext applicationContext = SpringApplication.run(EpicsWebSocketServerApplication.class, args);
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            List<WebSocket> sockets = (List<WebSocket>) applicationContext.getBean("sockets");
+            sockets.forEach(s -> {
+                System.out.println(s.getId());
+                s.dispose();
+            });
+            if (!PVPool.getPVReferences().isEmpty())
+                for (final RefCountMap.ReferencedEntry<PV> ref : PVPool.getPVReferences()) {
+                    System.out.println("Unreleased PV " + ref.getEntry().getName());
+                    PVPool.releasePV(ref.getEntry());
+                }
+        }));
+    }
+
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        return application.sources(EpicsWebSocketServerApplication.class);
     }
 }

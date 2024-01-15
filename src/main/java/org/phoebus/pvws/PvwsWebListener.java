@@ -19,45 +19,42 @@
 
 package org.phoebus.pvws;
 
-import jakarta.servlet.ServletContextEvent;
-import jakarta.servlet.ServletContextListener;
-import jakarta.servlet.annotation.WebListener;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.pv.RefCountMap;
 import org.phoebus.pvws.ws.WebSocket;
+import org.springframework.web.context.ContextLoader;
+import org.springframework.web.context.WebApplicationContext;
 
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+import javax.servlet.annotation.WebListener;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @WebListener
-public class PvwsServletContextListener implements ServletContextListener {
+public class PvwsWebListener implements ServletContextListener {
 
-    private final List<WebSocket> sockets;
-
-    private final Logger logger = Logger.getLogger(PvwsServletContextListener.class.getName());
-
-    public PvwsServletContextListener(List<WebSocket> sockets) {
-        this.sockets = sockets;
-    }
+    private List<WebSocket> sockets;
 
     @Override
     public void contextDestroyed(ServletContextEvent event) {
-        logger.log(Level.WARNING, "===========================================");
-        logger.log(Level.INFO, "Application context shut down");
-
-        sockets.forEach(s -> {
-            logger.log(Level.INFO, "Web sockets that did not close/unregister:");
-            s.dispose();
-        });
-
-        if (!PVPool.getPVReferences().isEmpty()) {
+        System.out.println("sdjhgfdfugh");
+        WebApplicationContext context = ContextLoader.getCurrentWebApplicationContext();
+        sockets = (List<WebSocket>) context.getBean("sockets");
+        if (sockets == null) {
+            System.out.println("null");
+        } else {
+            System.out.println("sockets size " + sockets.size());
+            sockets.forEach(s -> {
+                System.out.println(s.getId());
+                s.dispose();
+            });
+        }
+        System.out.println("check pv pool");
+        if (!PVPool.getPVReferences().isEmpty())
             for (final RefCountMap.ReferencedEntry<PV> ref : PVPool.getPVReferences()) {
-                logger.log(Level.WARNING, "Unreleased PV " + ref.getEntry().getName());
+                System.out.println("Unreleased PV " + ref.getEntry().getName());
                 PVPool.releasePV(ref.getEntry());
             }
-        }
-        logger.log(Level.INFO, "===========================================");
     }
 }

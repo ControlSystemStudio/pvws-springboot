@@ -129,7 +129,7 @@ public class PvwsRestController {
         List<PvPoolData> data = new ArrayList<>();
         for (final RefCountMap.ReferencedEntry<PV> ref : PVPool.getPVReferences()) {
             PvPoolData pvPoolData = new PvPoolData();
-            pvPoolData.setName(ref.getEntry().getName());
+            pvPoolData.setPv(ref.getEntry().getName());
             pvPoolData.setRefs(ref.getReferences());
             data.add(pvPoolData);
         }

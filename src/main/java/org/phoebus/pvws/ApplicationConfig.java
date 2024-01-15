@@ -22,11 +22,8 @@ package org.phoebus.pvws;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import jakarta.servlet.ServletContextListener;
-import org.phoebus.pvws.ws.PvSocketHandler;
 import org.phoebus.pvws.ws.Vtype2Json;
 import org.phoebus.pvws.ws.WebSocket;
-import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
@@ -64,21 +61,8 @@ public class ApplicationConfig {
 
     @Bean
     @Scope("singleton")
-    public PvSocketHandler pvSocketHandler() {
-        return new PvSocketHandler();
-    }
-
-    @Bean
-    @Scope("singleton")
     public Instant startTime() {
         return startTime;
     }
 
-    @Bean
-    ServletListenerRegistrationBean<ServletContextListener> servletListener() {
-        ServletListenerRegistrationBean<ServletContextListener> servletListenerRegistrationBean
-                = new ServletListenerRegistrationBean<>();
-        servletListenerRegistrationBean.setListener(new PvwsServletContextListener(getSockets()));
-        return servletListenerRegistrationBean;
-    }
 }
