@@ -77,8 +77,8 @@ public class WebSocket {
      * Constructor
      */
     public WebSocket(ObjectMapper objectMapper, WebSocketSession webSocketSession) {
-        logger.log(Level.FINE, () -> "Opening web socket " + session.getUri() + " ID " + session.getId());
         this.session = webSocketSession;
+        logger.log(Level.FINE, () -> "Opening web socket " + session.getUri() + " ID " + session.getId());
         this.objectMapper = objectMapper;
         this.id = webSocketSession.getId();
         Thread write_thread = new Thread(this::writeQueuedMessages, "PVWS Write Thread");
