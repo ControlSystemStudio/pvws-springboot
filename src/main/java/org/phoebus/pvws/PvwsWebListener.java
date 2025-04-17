@@ -38,7 +38,6 @@ public class PvwsWebListener implements ServletContextListener {
 
     @Override
     public void contextDestroyed(ServletContextEvent event) {
-        System.out.println("sdjhgfdfugh");
         WebApplicationContext context = ContextLoader.getCurrentWebApplicationContext();
         sockets = (List<WebSocket>) context.getBean("sockets");
         if (sockets == null) {
