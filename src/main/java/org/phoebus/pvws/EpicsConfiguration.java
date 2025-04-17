@@ -40,6 +40,27 @@ public class EpicsConfiguration {
     @Value("${PV_DEFAULT_TYPE:ca}")
     private String pvDefaultType;
 
+    @Value("${EPICS_PVA_ADDR_LIST}")
+    private String epicsPvaAddrList;
+
+    @Value("${EPICS_PVA_AUTO_ADDR_LIST:YES}")
+    private String epicsPvaAutoAddrList;
+
+    @Value("${EPICS_PVA_BROADCAST_PORT:5076}")
+    private String epicsPvaBroadcastPort;
+
+    @Value("${EPICS_PVA_NAME_SERVERS}")
+    private String epicsPvaNameServers;
+
+    @Value("${PV_THROTTLE_MS:1000}")
+    private String pvThrottleMs;
+
+    @Value("${PV_ARRAY_THROTTLE_MS:10000}")
+    private String pvArrayThrottleMs;
+
+    @Value("${PV_WRITE_SUPPORT:true}")
+    private String pvWriteSupport;
+
     @PostConstruct
     public void init() {
         logger.log(Level.INFO, "===========================================");
@@ -57,24 +78,27 @@ public class EpicsConfiguration {
         }
         logger.log(Level.INFO, "PV_DEFAULT_TYPE=" + Preferences.userRoot().node("/org/phoebus/pv").get("default", null));
 
+        Preferences.userRoot().node("/org/phoebus/pv/pva").put("epics_pva_addr_list", epicsPvaAddrList);
+
+        if(!epicsPvaAutoAddrList.isEmpty()){
+            Preferences.userRoot().node("/org/phoebus/pv/pva").put("epics_pva_auto_addr_list", epicsPvaAutoAddrList);
+        }
+
+        Preferences.userRoot().node("/org/phoebus/pv/pva").put("epics_pva_broadcast_port", epicsPvaBroadcastPort);
+        Preferences.userRoot().node("/org/phoebus/pv/pva").put("epics_pva_name_servers", epicsPvaNameServers);
+
+        System.setProperty("PV_THROTTLE_MS", pvThrottleMs);
+        System.setProperty("PV_ARRAY_THROTTLE_MS", pvArrayThrottleMs);
+        System.setProperty("PV_WRITE_SUPPORT", pvWriteSupport);
 
         // Configure JCA/CAJ to use environment vars, not java properties or preferences
-        System.setProperty("jca.use_env", "false");
+        System.setProperty("jca.use_env", "true");
 
-        for (String name : new String[]
-                {
-                        "PV_DEFAULT_TYPE",
-                        "PV_THROTTLE_MS",
-                        "PV_ARRAY_THROTTLE_MS",
-                        "PV_WRITE_SUPPORT",
-                        "EPICS_CA_ADDR_LIST",
-                        "EPICS_CA_AUTO_ADDR_LIST",
-                        "EPICS_CA_MAX_ARRAY_BYTES",
-                        "EPICS_PVA_ADDR_LIST",
-                        "EPICS_PVA_AUTO_ADDR_LIST"
-                })
-            logger.log(Level.INFO, name + " = " + System.getenv(name));
-
+        logger.log(Level.INFO, "EPICS_CA_ADDR_LIST=" + System.getenv("EPICS_CA_ADDR_LIST"));
+        logger.log(Level.INFO, "EPICS_CA_AUTO_ADDR_LIST=" + System.getenv("EPICS_CA_AUTO_ADDR_LIST"));
+        logger.log(Level.INFO, "EPICS_CA_MAX_ARRAY_BYTES=" + System.getenv("EPICS_CA_MAX_ARRAY_BYTES"));
+        logger.log(Level.INFO, "EPICS_PVA_ADDR_LIST=" + epicsPvaAddrList);
+        logger.log(Level.INFO, "EPICS_PVA_AUTO_ADDR_LIST=" + epicsPvaAutoAddrList);
 
         logger.log(Level.INFO, "===========================================");
 
