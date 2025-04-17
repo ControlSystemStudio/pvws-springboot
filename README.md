@@ -38,6 +38,9 @@ Bundled ``application.properties`` defines a few settings (e.g. default protocol
 settings, one may create a file named exactly ``application.properties`` and edit as needed. This
 file must be readable by the user account owning the application process.
 
+**NOTE:** If "ca" (channel access) is selected as default protocol, associated settings (e.g. EPICS_CA_ADDR_LIST) **must**
+be defined as environment variables.
+
 Executable jar
 --------------
 
