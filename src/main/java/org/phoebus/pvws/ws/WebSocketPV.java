@@ -11,6 +11,8 @@ import org.epics.vtype.Array;
 import org.epics.vtype.VType;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -48,24 +50,22 @@ public class WebSocketPV
 
     static
     {
-        String spec = System.getenv("PV_THROTTLE_MS");
+        String spec = System.getProperty("PV_THROTTLE_MS");
         if (spec == null)
             THROTTLE_MS = 1000;
         else
             THROTTLE_MS = Integer.parseInt(spec);
 
-        spec = System.getenv("PV_ARRAY_THROTTLE_MS");
+        spec = System.getProperty("PV_ARRAY_THROTTLE_MS");
         if (spec == null)
             ARRAY_THROTTLE_MS = 10000;
         else
             ARRAY_THROTTLE_MS = Integer.parseInt(spec);
 
-        spec = System.getenv("PV_WRITE_SUPPORT");
+        spec = System.getProperty("PV_WRITE_SUPPORT");
         if(spec != null && !spec.isEmpty()){
             PV_WRITE_SUPPORT = "true".equalsIgnoreCase(spec);
         }
-
-        PV_WRITE_SUPPORT = true;
 
         logger.log(Level.INFO, "PV_THROTTLE_MS = " + THROTTLE_MS);
         logger.log(Level.INFO, "PV_ARRAY_THROTTLE_MS = " + ARRAY_THROTTLE_MS);
