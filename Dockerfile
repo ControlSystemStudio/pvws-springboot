@@ -2,7 +2,7 @@
 
 FROM eclipse-temurin:17-jdk AS builder
 WORKDIR /build
-RUN apt-get update && apt-get install -y maven
+RUN apt-get update && apt-get install -y maven && rm -rf /var/lib/apt/lists/*
 COPY . .
 RUN mvn --batch-mode --update-snapshots clean package -DskipTests
 
