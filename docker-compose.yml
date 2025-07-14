@@ -1,0 +1,11 @@
+
+services:
+  pvws:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: pvws-springboot:latest
+    network_mode: "host"
+    environment:
+        - EPICS_CA_AUTO_ADDR_LIST=YES
+        - EPICS_PVA_AUTO_ADDR_LIST=YES
