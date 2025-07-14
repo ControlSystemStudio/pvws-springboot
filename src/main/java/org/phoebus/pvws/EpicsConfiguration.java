@@ -65,8 +65,6 @@ public class EpicsConfiguration {
     public void init() {
         logger.log(Level.INFO, "===========================================");
         logger.log(Level.INFO, contextPath + " started");
-        logger.log(Level.INFO, "Supported PV types: " + PVPool.getSupportedPrefixes());
-
         // Set default type in preferences before PVPool reads the preferences
         String default_type = System.getenv("PV_DEFAULT_TYPE");
         if (default_type != null && !default_type.isEmpty()) {
@@ -77,6 +75,7 @@ public class EpicsConfiguration {
             Preferences.userRoot().node("/org/phoebus/pv").put("default", pvDefaultType);
         }
         logger.log(Level.INFO, "PV_DEFAULT_TYPE=" + Preferences.userRoot().node("/org/phoebus/pv").get("default", null));
+        logger.log(Level.INFO, "Supported PV types: " + PVPool.getSupportedPrefixes());
 
         Preferences.userRoot().node("/org/phoebus/pv/pva").put("epics_pva_addr_list", epicsPvaAddrList);
 
