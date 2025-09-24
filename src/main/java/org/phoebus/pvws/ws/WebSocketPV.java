@@ -169,17 +169,6 @@ public class WebSocketPV
             throw new Exception("PV_WRITE_SUPPORT is disabled");
     }
 
-    /**
-     * Get current value by calling read() on the PV
-     * @return the current value
-     * @throws Exception on error
-     */
-    public VType get() throws Exception
-    {
-        pv = PVPool.getPV(name);
-        return pv.read();
-    }
-
     /** Close PV */
     public void dispose()
     {

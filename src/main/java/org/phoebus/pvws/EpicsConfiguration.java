@@ -61,6 +61,9 @@ public class EpicsConfiguration {
     @Value("${PV_WRITE_SUPPORT:true}")
     private String pvWriteSupport;
 
+    @Value("${PV_READ_TIMEOUT:5000}")
+    private String pvReadTimeout;
+
     @PostConstruct
     public void init() {
         logger.log(Level.INFO, "===========================================");
@@ -89,6 +92,7 @@ public class EpicsConfiguration {
         System.setProperty("PV_THROTTLE_MS", pvThrottleMs);
         System.setProperty("PV_ARRAY_THROTTLE_MS", pvArrayThrottleMs);
         System.setProperty("PV_WRITE_SUPPORT", pvWriteSupport);
+        System.setProperty("PV_READ_TIMEOUT", pvReadTimeout);
 
         // Configure JCA/CAJ to use environment vars, not java properties or preferences
         System.setProperty("jca.use_env", "true");
@@ -98,6 +102,7 @@ public class EpicsConfiguration {
         logger.log(Level.INFO, "EPICS_CA_MAX_ARRAY_BYTES=" + System.getenv("EPICS_CA_MAX_ARRAY_BYTES"));
         logger.log(Level.INFO, "EPICS_PVA_ADDR_LIST=" + epicsPvaAddrList);
         logger.log(Level.INFO, "EPICS_PVA_AUTO_ADDR_LIST=" + epicsPvaAutoAddrList);
+        logger.log(Level.INFO, "PV_READ_TIMEOUT=" + pvReadTimeout);
 
         logger.log(Level.INFO, "===========================================");
 
