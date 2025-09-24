@@ -68,21 +68,15 @@ public class EpicsWebSocketServerApplication extends SpringBootServletInitialize
         final WebSocketPV pv = new WebSocketPV(name, null);
         String ret;
         try {
-
-            // TODO make these configurable?
             int maxAttempts = 100;
             int retryDelay = 50;
 
             VType lastValue = null;
-
             for (int i = 0; i< maxAttempts; i++) {
                 Thread.sleep(retryDelay);
                 lastValue = pv.get();
                 if (lastValue != null) break;
-                System.out.println("value is" + lastValue + "attempt no " + i);
             }
-
-            System.out.println("value is" + lastValue);
             ret = Vtype2Json.toJson(name, lastValue, null, true, true);
         } catch (final Exception ex) {
             ret = String.format("Unable to get PV value for %s - exception %s", name, ex);
