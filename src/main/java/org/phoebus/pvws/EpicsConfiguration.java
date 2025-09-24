@@ -102,7 +102,6 @@ public class EpicsConfiguration {
         logger.log(Level.INFO, "EPICS_CA_MAX_ARRAY_BYTES=" + System.getenv("EPICS_CA_MAX_ARRAY_BYTES"));
         logger.log(Level.INFO, "EPICS_PVA_ADDR_LIST=" + epicsPvaAddrList);
         logger.log(Level.INFO, "EPICS_PVA_AUTO_ADDR_LIST=" + epicsPvaAutoAddrList);
-        logger.log(Level.INFO, "PV_READ_TIMEOUT=" + pvReadTimeout);
 
         logger.log(Level.INFO, "===========================================");
 
