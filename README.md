@@ -1,5 +1,44 @@
 This is an attempt to port the original work https://github.com/ornl-epics/pvws to a Spring Boot-based web application. While the code is adapted to the web socket APIs of Spring Boot, most of the code is essentially unchanged.
 
+Endpoints
+=========
+
+
+`HTTP`/`HTTPS`
+------
+`/pvws`
+
+This shows a webpage with documentation and test utilities.
+
+`pvws/info`
+
+This returns JSON information with general server info.
+
+`pvws/summary`
+
+This returns JSON with a summary of all active web sockets.
+
+`pvws/socket`
+
+This returns JSON with details on all active web sockets and their PVs.
+
+`pvws/pool`
+
+This returns JSON with a listing of all PVs in the PV connection pool.
+
+`pvws/pvget`
+
+This returns a single value read from a PV in the same JSON format as a websocket message.
+
+Takes the fully qualified PV address as the `name` parameter. 
+
+`WS`/`WSS`
+----------
+
+`pvws/pv`
+
+This is the main websocket connection endpoint. See `/pvws` for information on commands. 
+
 Requirements
 ------------
 

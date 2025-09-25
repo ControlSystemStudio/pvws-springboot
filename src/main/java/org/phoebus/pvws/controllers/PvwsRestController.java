@@ -22,19 +22,25 @@ package org.phoebus.pvws.controllers;
 import org.epics.util.array.ListInteger;
 import org.epics.vtype.Array;
 import org.epics.vtype.VType;
+import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.pv.RefCountMap;
 import org.phoebus.pvws.model.*;
+import org.phoebus.pvws.ws.Vtype2Json;
 import org.phoebus.pvws.ws.WebSocket;
 import org.phoebus.pvws.ws.WebSocketPV;
 import org.phoebus.util.time.TimestampFormats;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -145,5 +151,31 @@ public class PvwsRestController {
             infoData.setEnv(System.getenv().entrySet());
         }
         return infoData;
+    }
+
+    @GetMapping(value= "/pvget", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String pvget(@RequestParam String name) {
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        AtomicReference<VType> value = new AtomicReference<>(null);
+        try {
+            int pvReadTimeout = Integer.parseInt(System.getProperty("PV_READ_TIMEOUT"));
+            PV pv = PVPool.getPV(name);
+            pv.onValueEvent().subscribe(vtype -> {
+                if (!VTypeHelper.isDisconnected(vtype)) {
+                    value.set(pv.read());
+                }
+                countDownLatch.countDown();
+            });
+            countDownLatch.await(pvReadTimeout, TimeUnit.MILLISECONDS);
+            PVPool.releasePV(pv);
+            if(value.get() == null){
+                logger.info("PV " + name + " never connected.");
+                return null;
+            }
+            return Vtype2Json.toJson(name, value.get(), null, true, true);
+        } catch (Exception e) {
+            logger.warning("Exception when reading PV " + name + " Exception: " + e);
+            return null;
+        }
     }
 }
